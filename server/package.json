@@ -23,6 +23,7 @@
     "fastify-jwt": "^1.2.1",
     "fastify-mongodb": "^2.0.0",
     "fastify-plugin": "^1.6.0",
+    "fastify-static": "^2.6.0",
     "fluent-schema": "^0.10.0"
   },
   "devDependencies": {

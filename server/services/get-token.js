@@ -1,7 +1,7 @@
 'use strict'
 
 const S = require('fluent-schema')
-const { getUserByName } = require('../repository/user')
+const { getUserByName, checkPassword } = require('../repository/user')
 
 async function getTokenService (fastify/*, opts */) {
   const tokenSchema = {
@@ -32,28 +32,25 @@ async function getTokenService (fastify/*, opts */) {
 
   async function onGetToken (req, reply) {
     req.log.info('onGetToken')
-    const { username/*, password */ } = req.body
+    const { username, password } = req.body
 
-    const user = await getUserByName(this.pg, username)
+    const error = () => reply.code(400).send({
+      type: 'error',
+      message: 'wrong username or password'
+    })
 
-    /*
-    * TODO
-    * 1) user not found
-    * 2) wrong password
-    * 3) user - disabled
-    * */
-
-    if (!user || !user.enabled) {
-      return reply.code(400).send({
-        type: 'error',
-        message: 'wrong username or password'
-      })
+    const user = await getUserByName(this.mongo, username)
+    if (!user) {
+      return error()
     }
 
-    // req.log.info(rows.length, rows[0], 'fetched user')
+    const validPwd = await checkPassword(password, user.password)
+    if (!validPwd) {
+      return error()
+    }
 
     const token = await reply.jwtSign({ username }, {
-      expiresIn: 300 // 5 minute
+      expiresIn: 3600 // 1 hour
     })
 
     return { token }
