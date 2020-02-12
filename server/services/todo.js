@@ -14,9 +14,9 @@ async function todoService (fastify, opts) {
 
   const todoSchema = S.object()
     .prop('id', S.string())
-    .prop('title', S.string())
+    .prop('description', S.string())
     .prop('done', S.boolean())
-    .prop('date', S.string().format('date-time'))
+    .prop('eta', S.string().format('date-time'))
 
   fastify.route({
     method: 'GET',
@@ -35,12 +35,12 @@ async function todoService (fastify, opts) {
     handler: onCreate,
     schema: {
       body: S.object()
-        .prop('title', S.string()
+        .prop('description', S.string()
           .minLength(4)
           .maxLength(128)
           .required()
         )
-        .prop('date', S.string().format('date-time')),
+        .prop('eta', S.string().format('date-time')),
       response: {
         200: todoSchema
       }
@@ -58,17 +58,35 @@ async function todoService (fastify, opts) {
     }
   })
 
+  fastify.route({
+    method: 'PUT',
+    path: '/:id',
+    handler: onDone,
+    schema: {
+      body: S.object()
+        .prop('done', S.boolean().required()),
+      response: {
+        200: S.object().prop('status', S.boolean())
+      }
+    }
+  })
+
   async function onList (req, reply) {
     return list(this.mongo)
   }
 
   async function onCreate (req, reply) {
     return await create(this.mongo, req.body)
-}
+  }
 
   async function onDelete (req, reply) {
     await remove(this.mongo, req.params.id)
-    return {status: true}
+    return { status: true }
+  }
+
+  async function onDone (req, reply) {
+    await done(this.mongo, req.params.id, req.body.done)
+    return { status: true }
   }
 }
 

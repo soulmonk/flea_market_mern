@@ -19,7 +19,7 @@ export default function SignIn () {
       password
     }).then(result => {
       if (result.status === 200) {
-        setAuthTokens(result.data)
+        setAuthTokens(result.data.token)
         setLoggedIn(true)
       } else {
         setIsError(true)
